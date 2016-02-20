@@ -17,7 +17,7 @@ import org.junit.Test;
 
 import com.kevin.es.utils.EsUtils;
 
-public class DemoCrud {
+public class Demo1Crud {
 	
 	//增加
 	@Test
