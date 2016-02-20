@@ -1,4 +1,4 @@
-package com.kevin.es;
+package com.kevin.es.demo;
 
 import java.security.SecureRandom;
 import java.util.Random;
