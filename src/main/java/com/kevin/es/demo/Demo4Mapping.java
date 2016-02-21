@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import com.kevin.es.utils.EsUtils;
 
-public class Demo3Mapping {
+public class Demo4Mapping {
 	
 	private String indexName = "test_mapping_index";
 	private String typeName = "test_mapping_type";
