@@ -55,6 +55,9 @@ public class Demo3Mapping {
 						.startObject("catIds")
 							.field("type", "integer")
 						.endObject()
+						.startObject("catName")
+							.field("type", "string")
+						.endObject()
 					.endObject()
 				.endObject()
 			.endObject();		
