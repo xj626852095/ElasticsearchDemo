@@ -9,15 +9,19 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortOrder;
 import org.junit.Test;
 
 import com.kevin.es.utils.EsUtils;
 
 public class Demo1Crud {
+	
+	private TransportClient  client;
 	
 	//增加
 	@Test
@@ -28,7 +32,7 @@ public class Demo1Crud {
 		map.put("prodDesc", "手机");
 		map.put("catId", 2);
 				
-		Client client = EsUtils.getEsClient();
+		client = EsUtils.getEsClient();
 		IndexResponse indexResponse = client.prepareIndex()
 				.setIndex(EsUtils.getIndexName())
 				.setType(EsUtils.getTypeName()) 
@@ -37,7 +41,7 @@ public class Demo1Crud {
 				.setId("1")
 				.execute()
 				.actionGet();
-		System.out.println("插入成功, isCreated="+indexResponse.isCreated());
+		System.out.println("插入成功, isCreated="+indexResponse.getResult().toString());
 		EsUtils.closeClient();
 	}
 	
@@ -45,7 +49,7 @@ public class Demo1Crud {
 	//查询
 	@Test
 	public void query(){
-		Client client = EsUtils.getEsClient();
+		client = EsUtils.getEsClient();
 		GetResponse getResponse = client.prepareGet()
 				.setIndex(EsUtils.getIndexName())
 				.setType(EsUtils.getTypeName())
@@ -59,8 +63,8 @@ public class Demo1Crud {
 	//搜索
 	@Test
 	public void search(){
-		Client client = EsUtils.getEsClient();
-		QueryBuilder query = QueryBuilders.queryString("iphone");
+		client = EsUtils.getEsClient();
+		QueryBuilder query = QueryBuilders.queryStringQuery("iphone6");
 		SearchResponse searchResponse = client.prepareSearch( EsUtils.getIndexName() )
 				.setQuery(query)
 				.setFrom(0).setSize(10)
@@ -74,17 +78,57 @@ public class Demo1Crud {
 		EsUtils.closeClient();
 	}
 	
+	//搜索2
+	@Test
+	public void search2(){
+		client = EsUtils.getEsClient();
+		QueryBuilder query = QueryBuilders.boolQuery()
+				.must( QueryBuilders.matchQuery("name", "Walter Parker") )
+				.must( QueryBuilders.rangeQuery("age").lte(50) );
+		SearchResponse searchResponse = client.prepareSearch( EsUtils.getIndexName() )
+				.setQuery(query)
+				.setFrom(0).setSize(10)
+				.execute()
+				.actionGet();		
+		//SearchHits是SearchHit的复数形式，表示这个是一个列表
+		SearchHits shs = searchResponse.getHits();
+		for(SearchHit hit : shs){
+			System.out.println( hit.getSourceAsString() );
+		}
+		EsUtils.closeClient();
+	}
+	
+	
+	//过滤
+	@Test
+	public void filter(){
+		client = EsUtils.getEsClient();
+		QueryBuilder postFilter = QueryBuilders.rangeQuery("age").gte(50).lte(60);
+		SearchResponse searchResponse = client.prepareSearch( EsUtils.getIndexName() )
+				.setPostFilter(postFilter)
+				.setFrom(0).setSize(10)
+				.addSort("age", SortOrder.DESC)
+				.execute()
+				.actionGet();
+		//SearchHits是SearchHit的复数形式，表示这个是一个列表
+		SearchHits shs = searchResponse.getHits();
+		for(SearchHit hit : shs){
+			System.out.println( hit.getSourceAsString() );
+		}
+		EsUtils.closeClient();
+	}
+	
 	//删除
 	@Test
 	public void delete(){
-		Client client = EsUtils.getEsClient();
+		client = EsUtils.getEsClient();
 		DeleteResponse delResponse = client.prepareDelete()
 				.setIndex(EsUtils.getIndexName())
 				.setType(EsUtils.getTypeName())
 				.setId("1")
 				.execute()
 				.actionGet();
-		System.out.println("del id found="+delResponse.isFound());
+		System.out.println("del id found="+delResponse.getResult());
 		EsUtils.closeClient();
 	}
 	
@@ -97,7 +141,7 @@ public class Demo1Crud {
 		updateMap.put("prodDesc", "手机");
 		//updateMap.put("catId", 2);
 				
-		Client client = EsUtils.getEsClient();
+		client = EsUtils.getEsClient();
 		UpdateResponse updateResponse = client.prepareUpdate()
 				.setIndex(EsUtils.getIndexName())
 				.setType(EsUtils.getTypeName())				
@@ -105,7 +149,7 @@ public class Demo1Crud {
 				.setId("1")
 				.execute()
 				.actionGet();
-		System.out.println("更新成功， isUpdated="+updateResponse.isCreated());  //???? 一直是false
+		System.out.println("更新成功， isUpdated="+updateResponse.getResult());  //???? 一直是false
 		EsUtils.closeClient();
 	}
 	
